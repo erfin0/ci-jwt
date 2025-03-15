@@ -25,6 +25,10 @@ class CreateRefreshTokensTable extends Migration
                 'type'       => 'VARCHAR',
                 'constraint' => '255',
             ],
+            'user_agent'=>[
+                'type'       => 'VARCHAR',
+                'constraint' => '255',
+            ],
             'expires_at' => [
                 'type' => 'DATETIME',
             ],
