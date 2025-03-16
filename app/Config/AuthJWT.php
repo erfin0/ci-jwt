@@ -61,7 +61,9 @@ class AuthJWT extends BaseConfig
                 // Set secret random string. Needs at least 256 bits for HS256 algorithm.
                 // E.g., $ php -r 'echo base64_encode(random_bytes(32));'
                // 'secret' => '<Set secret random string>',
-               'secret' => hex2bin(env('encryption.key')), // Load key from .env
+               //'secret' => hex2bin(env('encryption.key')), // Load key from .env
+                // 'secret' => '<Set secret random string>',
+                //'secret' => env('encryption.key'),
   
             ],
             // Asymmetric Key

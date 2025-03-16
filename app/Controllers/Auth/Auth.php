@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controllers\Auth;
@@ -8,6 +9,7 @@ use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\Shield\Validation\ValidationRules;
 use App\Models\RefreshTokenModel;
+use CodeIgniter\Shield\Entities\User;
 
 class Auth extends BaseController
 {
@@ -15,18 +17,28 @@ class Auth extends BaseController
 
     public function jwtLogin(): ResponseInterface
     {
+
+
+        if (
+            !$this->request->hasHeader('Content-Type') ||
+            stripos($this->request->getHeaderLine('Content-Type'), 'application/json') === false
+        ) {
+            return $this->fail(['errors' => 'Invalid content type, expected application/json'], 400);
+        }
+
         $rules = $this->getValidationRules();
-        $data = $this->request->getJSON(true);
+        $data = $this->request->getJSON(true)  ?? [];
+
 
         if (!$this->validateData($data, $rules, [], config('Auth')->DBGroup)) {
             return $this->fail(['errors' => $this->validator->getErrors()], 401);
         }
 
-        $credentials = array_filter([
-            'email' => $data['email'] ?? null,
-            'username' => $data['username'] ?? null,
-            'password' => $data['password'] ?? null,
-        ]);
+        // Get the credentials for login
+        $credentials             = $this->request->getJsonVar(setting('Auth.validFields'));
+        $credentials             = array_filter($credentials);
+        $b = $credentials;
+        $credentials['password'] = $this->request->getJsonVar('password');
 
         $authenticator = auth()->getAuthenticator();
         $result = $authenticator->check($credentials);
@@ -35,7 +47,10 @@ class Auth extends BaseController
             return $this->failUnauthorized($result->reason());
         }
 
-        return $this->generateTokenResponse();
+        $user =    auth()->getProvider()->findByCredentials($b);
+
+
+        return $this->generateTokenResponse($user);
     }
 
     protected function getValidationRules(): array
@@ -44,20 +59,20 @@ class Auth extends BaseController
         return $rules->getLoginRules();
     }
 
-    protected function generateToken(): string
+    protected function generateToken(User $user): string
     {
         $manager = service('jwtmanager');
-        $user = auth()->user();
+        $userAgent = hash('sha256', $this->request->getUserAgent()->getAgentString());
 
-        return $manager->generateToken($user);
+        return $manager->generateToken($user, ['user_agent' => $userAgent]);
     }
 
-    protected function generateRefreshToken(int $drefresh = 0): string
+    protected function generateRefreshToken(int $drefresh = 0,user $user): string
     {
-        $user = auth()->user();
+       
         $refreshToken = bin2hex(random_bytes(32));
         $expiresAt = date('Y-m-d H:i:s', time() + config('AuthJWT.refreshTokenLifetime'));
-        $userAgent = $this->request->getUserAgent();
+        $userAgent = hash('sha256', $this->request->getUserAgent()->getAgentString());
 
         $refreshTokenModel = new RefreshTokenModel();
         if ($drefresh === 0) {
@@ -78,20 +93,20 @@ class Auth extends BaseController
         return $refreshToken;
     }
 
-    protected function generateTokenResponse(int $drefresh = 0): ResponseInterface
+    protected function generateTokenResponse(user $user ,int $drefresh = 0): ResponseInterface
     {
         return $this->respond([
-            'access_token' => $this->generateToken(),
-            'refresh_token' => $this->generateRefreshToken($drefresh),
+            'access_token' => $this->generateToken($user),
+            'refresh_token' => $this->generateRefreshToken($drefresh,$user ),
         ]);
     }
 
     public function refresh(): ResponseInterface
     {
         $refreshTokenModel = new RefreshTokenModel();
-        $data = $this->request->getPost();
+        $data = $this->request->getJSON(true) ?? $this->request->getPost(true) ?? [];
         $refreshToken = $data['refresh_token'] ?? null;
-        $userAgent = $this->request->getUserAgent();
+        $userAgent = hash('sha256', $this->request->getUserAgent()->getAgentString());
 
         if (!$refreshToken) {
             return $this->failUnauthorized('Refresh token is required.');
@@ -102,14 +117,14 @@ class Auth extends BaseController
         if (!$tokenData || strtotime($tokenData['expires_at']) < time() || $tokenData['user_agent'] !== $userAgent) {
             return $this->failUnauthorized('Invalid or expired refresh token.');
         }
-
-        return $this->generateTokenResponse($tokenData['id']);
+        $user=auth()->getProvider()->findById(123);
+        return $this->generateTokenResponse($user,$tokenData['id']);
     }
 
     public function jwtlogout(): ResponseInterface
     {
         $refreshTokenModel = new RefreshTokenModel();
-        $data = $this->request->getPost();
+        $data = $this->request->getJSON(true) ?? $this->request->getPost(true) ?? [];
         $refreshToken = $data['refresh_token'] ?? null;
 
         if (!$refreshToken) {
@@ -119,5 +134,14 @@ class Auth extends BaseController
         $refreshTokenModel->where('token', $refreshToken)->delete();
 
         return $this->respond(['message' => 'Logged out successfully.']);
+    }
+
+    public function validateToken(string $token): bool
+    {
+        $manager = service('jwtmanager');
+        $decoded = $manager->decode($token);
+        $currentUserAgent = hash('sha256', $this->request->getUserAgent()->getAgentString());
+
+        return isset($decoded['user_agent']) && $decoded['user_agent'] === $currentUserAgent;
     }
 }
