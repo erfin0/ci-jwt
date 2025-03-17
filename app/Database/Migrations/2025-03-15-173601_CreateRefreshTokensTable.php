@@ -25,7 +25,7 @@ class CreateRefreshTokensTable extends Migration
                 'type'       => 'VARCHAR',
                 'constraint' => '255',
             ],
-            'user_agent'=>[
+            'user_agent' => [
                 'type'       => 'VARCHAR',
                 'constraint' => '255',
             ],
@@ -37,6 +37,12 @@ class CreateRefreshTokensTable extends Migration
                 'null'    => true,
                 // Menggunakan RawSql untuk menetapkan default CURRENT_TIMESTAMP.
                 'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP'),
+            ],
+            'updated_at' =>  [
+                'type'    => 'DATETIME',
+                'null'    => true,
+                // Menggunakan RawSql untuk menetapkan default CURRENT_TIMESTAMP.
+                
             ],
         ]);
 
