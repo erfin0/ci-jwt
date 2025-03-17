@@ -33,7 +33,7 @@ class Filters extends BaseFilters
         'cors'          => Cors::class,
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
-        'performance'   => PerformanceMetrics::class,
+        'performance'   => PerformanceMetrics::class,       
     ];
 
     /**
@@ -71,7 +71,7 @@ class Filters extends BaseFilters
         'before' => [
             // 'honeypot',
             // 'csrf',
-            // 'invalidchars',
+            // 'invalidchars',           
         ],
         'after' => [
             // 'honeypot',
@@ -103,5 +103,7 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+        'cors:api' => ['before' => ['api/*', 'auth/*']]
+    ];
 }
