@@ -12,7 +12,7 @@ class RefreshTokenModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    =  ['user_id', 'token', 'expires_at'];
+    protected $allowedFields    =  ['user_id', 'token', 'expires_at','updated_at','created_at'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
