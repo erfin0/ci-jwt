@@ -39,7 +39,7 @@ class AuthJWT extends BaseConfig
      * @var array<string, string>
      */
     public array $defaultClaims = [
-        'iss' => '<Issuer of the JWT>',
+        'iss' => '<Issuer of the JWT>',        
     ];
 
     /**
@@ -62,7 +62,7 @@ class AuthJWT extends BaseConfig
                 // E.g., $ php -r 'echo base64_encode(random_bytes(32));'
                // 'secret' => '<Set secret random string>',
                //'secret' => hex2bin(env('encryption.key')), // Load key from .env
-                // 'secret' => '<Set secret random string>',
+                'secret' => '<Set secret random string>',
                 //'secret' => env('encryption.key'),
   
             ],
