@@ -12,6 +12,7 @@ use CodeIgniter\Filters\InvalidChars;
 use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
+use CodeIgniter\Shield\Filters\JWTAuth;
 
 class Filters extends BaseFilters
 {
@@ -33,7 +34,8 @@ class Filters extends BaseFilters
         'cors'          => Cors::class,
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
-        'performance'   => PerformanceMetrics::class,       
+        'performance'   => PerformanceMetrics::class,
+        'JWTAuth'       => JWTAuth::class,
     ];
 
     /**
@@ -104,6 +106,10 @@ class Filters extends BaseFilters
      * @var array<string, array<string, list<string>>>
      */
     public array $filters = [
-        'cors:api' => ['before' => ['api/*', 'auth/*']]
+        'cors:api' => ['before' => ['api/*', 'auth/*']],
+        'JWTAuth'  => [            
+            'before' => ['/','auth/logout'], // Terapkan ke semua rute
+            //'except' => ['auth/login','auth/refresh'],// Kecualikan rute di bawah auth/*
+        ],
     ];
 }
