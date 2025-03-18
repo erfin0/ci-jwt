@@ -67,7 +67,7 @@ class Auth extends BaseController
         return $manager->generateToken($user, ['user_agent' => $userAgent]);
     }
 
-    protected function generateRefreshToken(int $drefresh = 0,user $user): string
+    protected function generateRefreshToken(int $drefresh = 0,User $user): string
     {
        
         $refreshToken = bin2hex(random_bytes(32));
@@ -93,7 +93,7 @@ class Auth extends BaseController
         return $refreshToken;
     }
 
-    protected function generateTokenResponse(user $user ,int $drefresh = 0): ResponseInterface
+    protected function generateTokenResponse(User $user ,int $drefresh = 0): ResponseInterface
     {
         return $this->respond([
             'access_token' => $this->generateToken($user),
@@ -117,7 +117,7 @@ class Auth extends BaseController
         if (!$tokenData || strtotime($tokenData['expires_at']) < time() || $tokenData['user_agent'] !== $userAgent) {
             return $this->failUnauthorized('Invalid or expired refresh token.');
         }
-        $user=auth()->getProvider()->findById(123);
+        $user=auth()->getProvider()->findById($tokenData['user_id']);
         return $this->generateTokenResponse($user,$tokenData['id']);
     }
 
