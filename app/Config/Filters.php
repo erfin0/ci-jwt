@@ -14,6 +14,8 @@ use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
 
 use App\Filters\JWTAuthFilter;
+use App\Filters\GroupJWTFilter;
+use App\Filters\PermissionJWTFilter;
 
 class Filters extends BaseFilters
 {
@@ -37,6 +39,8 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'JWTAuth'       => JWTAuthFilter::class,
+        'PermissionJWTFilter' => PermissionJWTFilter::class,
+        'GroupJWTFilter' => GroupJWTFilter::class,
     ];
 
     /**
@@ -108,8 +112,8 @@ class Filters extends BaseFilters
      */
     public array $filters = [
         'cors:api' => ['before' => ['api/*', 'auth/*']],
-        'JWTAuth'  => [            
-            'before' => ['/','auth/logout'], // Terapkan ke semua rute
+        'JWTAuth'  => [
+            'before' => ['/', 'auth/logout'], // Terapkan ke semua rute
             //'except' => ['auth/login','auth/refresh'],// Kecualikan rute di bawah auth/*
         ],
     ];
